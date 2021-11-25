@@ -1,4 +1,4 @@
-﻿using H.Pipes;
+﻿using H.ProxyFactory;
 using NamedPipesSample.Common;
 using System;
 using System.Threading.Tasks;
@@ -10,55 +10,37 @@ namespace NamedPipesSample.TrayIcon
     {
         const string pipeName = "samplepipe";
 
-        private PipeClient<PipeMessage> client;
+        private PipeProxyFactory factory;
+        private IActionService? service;
 
         public NamedPipesClient()
         {
-            client = new PipeClient<PipeMessage>(pipeName);
-            client.MessageReceived += (sender, args) => OnMessageReceivedAsync(args.Message);
-            client.Disconnected += (o, args) => MessageBox.Show("Disconnected from server");
-            client.Connected += (o, args) => MessageBox.Show("Connected to server");
-            client.ExceptionOccurred += (o, args) => OnExceptionOccurred(args.Exception);
+            factory = new PipeProxyFactory();
+            factory.ExceptionOccurred += (o, exception) => OnExceptionOccurred(exception);
         }
 
         public async Task InitializeAsync()
         {
-            await client.ConnectAsync();
+            await factory.InitializeAsync(pipeName);
 
-            await client.WriteAsync(new PipeMessage
-            {
-                Action = ActionType.SendText,
-                Text = "Hello from client",
-            });
+            service = await factory.CreateInstanceAsync<IActionService>(typeof(ActionService).FullName);
+            service.TextReceived += (sender, text) => OnTextReceived(text);
+            service.SendText("Hello from client");
         }
 
-        public async Task ShowTrayIconAsync()
+        public void ShowTrayIcon()
         {
-            await client.WriteAsync(new PipeMessage
-            {
-                Action = ActionType.ShowTrayIcon
-            });
+            service?.ShowTrayIcon();
         }
 
-        public async Task HideTrayIconAsync()
+        public void HideTrayIcon()
         {
-            await client.WriteAsync(new PipeMessage
-            {
-                Action = ActionType.HideTrayIcon
-            });
+            service?.HideTrayIcon();
         }
 
-        private void OnMessageReceivedAsync(PipeMessage message)
+        private void OnTextReceived(string text)
         {
-            switch (message.Action)
-            {
-                case ActionType.SendText:
-                    MessageBox.Show(message.Text);
-                    break;
-                default:
-                    MessageBox.Show($"Method {message.Action} not implemented");
-                    break;
-            }
+            MessageBox.Show(text);
         }
 
         private void OnExceptionOccurred(Exception exception)
@@ -68,7 +50,7 @@ namespace NamedPipesSample.TrayIcon
 
         public async ValueTask DisposeAsync()
         {
-            await client.DisposeAsync().ConfigureAwait(false);
+            await factory.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

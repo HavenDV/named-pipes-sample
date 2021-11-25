@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="H.Pipes" Version="1.15.2" />
+    <PackageReference Include="H.ProxyFactory.Pipes" Version="0.8.2" />
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
     <PackageReference Include="System.Management" Version="4.7.0" />
   </ItemGroup>
