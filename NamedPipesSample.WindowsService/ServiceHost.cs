@@ -44,14 +44,18 @@ namespace NamedPipesSample.WindowsService
             stopping = true;
         }
 
-        private static void InitializeServiceThread()
+        private static async void InitializeServiceThread()
         {
             pipeServer = new NamedPipesServer();
-            pipeServer.InitializeAsync().GetAwaiter().GetResult();
 
-            while (!stopping)
+            await using (pipeServer)
             {
-                Task.Delay(100).GetAwaiter().GetResult();
+                await pipeServer.InitializeAsync().ConfigureAwait(false);
+
+                while (!stopping)
+                {
+                    await Task.Delay(100).ConfigureAwait(false);
+                }
             }
         }
     }

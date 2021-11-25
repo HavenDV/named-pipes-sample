@@ -6,36 +6,23 @@ using System.Windows;
 
 namespace NamedPipesSample.TrayIcon
 {
-    public class NamedPipesClient : IDisposable
+    public class NamedPipesClient : IAsyncDisposable
     {
         const string pipeName = "samplepipe";
 
-        private static NamedPipesClient instance;
         private PipeClient<PipeMessage> client;
 
-        public static NamedPipesClient Instance
+        public NamedPipesClient()
         {
-            get
-            {
-                return instance ?? new NamedPipesClient();
-            }
-        }
-
-        private NamedPipesClient()
-        {
-            instance = this;
-        }
-        public async Task InitializeAsync()
-        {
-            if (client != null && client.IsConnected)
-                return;
-
             client = new PipeClient<PipeMessage>(pipeName);
             client.MessageReceived += (sender, args) => OnMessageReceivedAsync(args.Message);
             client.Disconnected += (o, args) => MessageBox.Show("Disconnected from server");
             client.Connected += (o, args) => MessageBox.Show("Connected to server");
             client.ExceptionOccurred += (o, args) => OnExceptionOccurred(args.Exception);
+        }
 
+        public async Task InitializeAsync()
+        {
             await client.ConnectAsync();
 
             await client.WriteAsync(new PipeMessage
@@ -79,10 +66,9 @@ namespace NamedPipesSample.TrayIcon
             MessageBox.Show($"An exception occured: {exception}");
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            if (client != null)
-                client.DisposeAsync().GetAwaiter().GetResult();
+            await client.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

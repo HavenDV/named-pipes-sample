@@ -14,12 +14,12 @@ namespace NamedPipesSample.TrayIcon
 
         private async void ShowTrayIconBtn_Click(object sender, RoutedEventArgs e)
         {
-            await NamedPipesClient.Instance.ShowTrayIconAsync();
+            await ((App)Application.Current).client.ShowTrayIconAsync();
         }
 
         private async void HideTrayIconBtn_Click(object sender, RoutedEventArgs e)
         {
-            await NamedPipesClient.Instance.HideTrayIconAsync();
+            await ((App)Application.Current).client.HideTrayIconAsync();
         }
     }
 }

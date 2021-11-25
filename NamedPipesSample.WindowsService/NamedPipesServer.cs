@@ -4,27 +4,26 @@ using NamedPipesSample.Common;
 
 namespace NamedPipesSample.WindowsService
 {
-    public class NamedPipesServer : IDisposable
+    public class NamedPipesServer : IAsyncDisposable
     {
         const string PIPE_NAME = "samplepipe";
 
-        private PipeServer<PipeMessage>? server;
+        private PipeServer<PipeMessage> server;
         private TrayIconService trayIconService;
 
         public NamedPipesServer()
         {
             trayIconService = new TrayIconService();
-        }
 
-        public async Task InitializeAsync()
-        {
             server = new PipeServer<PipeMessage>(PIPE_NAME);
-
             server.ClientConnected += async (o, args) => await OnClientConnectedAsync(args);
             server.ClientDisconnected += (o, args) => OnClientDisconnected(args);
             server.MessageReceived += (sender, args) => OnMessageReceived(args.Message);
             server.ExceptionOccurred += (o, args) => OnExceptionOccurred(args.Exception);
+        }
 
+        public async Task InitializeAsync()
+        {
             await server.StartAsync();
         }
 
@@ -74,15 +73,9 @@ namespace NamedPipesSample.WindowsService
             Console.WriteLine($"Exception occured in pipe: {ex}");
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            DisposeAsync().GetAwaiter().GetResult();
-        }
-
-        public async Task DisposeAsync()
-        {
-            if (server != null)
-                await server.DisposeAsync();
+            await server.DisposeAsync().ConfigureAwait(false);
         }
     }
 }
