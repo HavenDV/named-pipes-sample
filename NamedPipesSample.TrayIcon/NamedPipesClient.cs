@@ -23,7 +23,7 @@ namespace NamedPipesSample.TrayIcon
         {
             await factory.InitializeAsync(pipeName);
 
-            service = await factory.CreateInstanceAsync<IActionService>(typeof(ActionService).FullName);
+            service = await factory.CreateInstanceAsync<ActionService, IActionService>();
             service.TextReceived += (sender, text) => OnTextReceived(text);
             service.SendText("Hello from client");
         }
