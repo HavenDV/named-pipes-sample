@@ -1,4 +1,6 @@
-﻿using H.ProxyFactory;
+﻿using H.Pipes;
+using H.Pipes.AccessControl;
+using NamedPipesSample.Common;
 
 namespace NamedPipesSample.WindowsService
 {
@@ -6,19 +8,22 @@ namespace NamedPipesSample.WindowsService
     {
         const string PIPE_NAME = "samplepipe";
 
-        private PipeProxyServer server = new();
+        private PipeServer<string> server = new PipeServer<string>(PIPE_NAME);
+        private ActionService service = new();
 
         public NamedPipesServer()
         {
-            server.ExceptionOccurred += (o, exception) => OnExceptionOccurred(exception);
+            server.AllowUsersReadWrite();
+            server.ExceptionOccurred += static (_, args) => OnExceptionOccurred(args.Exception);
+            service.Initialize(server);
         }
 
         public async Task InitializeAsync()
         {
-            await server.InitializeAsync(PIPE_NAME);
+            await server.StartAsync();
         }
 
-        private void OnExceptionOccurred(Exception ex)
+        private static void OnExceptionOccurred(Exception ex)
         {
             Console.WriteLine($"Exception occured in pipe: {ex}");
         }

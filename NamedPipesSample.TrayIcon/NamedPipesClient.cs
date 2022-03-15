@@ -1,41 +1,43 @@
-﻿using H.ProxyFactory;
-using NamedPipesSample.Common;
+﻿using NamedPipesSample.Common;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
+using H.Pipes;
 
 namespace NamedPipesSample.TrayIcon
 {
+    [H.IpcGenerators.IpcClient]
+    public partial class ActionServiceClient : IActionService
+    {
+    } 
+
     public class NamedPipesClient : IAsyncDisposable
     {
         const string pipeName = "samplepipe";
 
-        private PipeProxyFactory factory;
-        private IActionService? service;
+        private PipeClient<string> pipeClient;
+        private ActionServiceClient service = new();
 
         public NamedPipesClient()
         {
-            factory = new PipeProxyFactory();
-            factory.ExceptionOccurred += (o, exception) => OnExceptionOccurred(exception);
+            pipeClient = new PipeClient<string>(pipeName);
+            pipeClient.ExceptionOccurred += static (_, args) => OnExceptionOccurred(args.Exception);
+            service.Initialize(pipeClient);
         }
 
         public async Task InitializeAsync()
         {
-            await factory.InitializeAsync(pipeName);
-
-            service = await factory.CreateInstanceAsync<ActionService, IActionService>();
-            service.TextReceived += (sender, text) => OnTextReceived(text);
-            service.SendText("Hello from client");
+            await pipeClient.ConnectAsync();
         }
 
         public void ShowTrayIcon()
         {
-            service?.ShowTrayIcon();
+            service.ShowTrayIcon();
         }
 
         public void HideTrayIcon()
         {
-            service?.HideTrayIcon();
+            service.HideTrayIcon();
         }
 
         private void OnTextReceived(string text)
@@ -43,14 +45,14 @@ namespace NamedPipesSample.TrayIcon
             MessageBox.Show(text);
         }
 
-        private void OnExceptionOccurred(Exception exception)
+        private static void OnExceptionOccurred(Exception exception)
         {
             MessageBox.Show($"An exception occured: {exception}");
         }
 
         public async ValueTask DisposeAsync()
         {
-            await factory.DisposeAsync().ConfigureAwait(false);
+            await pipeClient.DisposeAsync().ConfigureAwait(false);
         }
     }
 }
