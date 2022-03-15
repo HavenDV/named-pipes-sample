@@ -4,10 +4,10 @@ namespace NamedPipesSample.WindowsService
 {
     internal class ServiceHost : ServiceBase
     {
-        private static Thread serviceThread;
+        private static Thread? serviceThread;
         private static bool stopping;
 
-        private static NamedPipesServer pipeServer;
+        private static NamedPipesServer? pipeServer;
 
         public ServiceHost()
         {

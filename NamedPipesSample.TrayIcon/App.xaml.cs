@@ -6,7 +6,7 @@ namespace NamedPipesSample.TrayIcon
 {
     public partial class App : Application
     {
-        private TaskbarIcon notifyIcon;
+        private TaskbarIcon? notifyIcon;
         public NamedPipesClient client;
 
         public App()
@@ -33,7 +33,7 @@ namespace NamedPipesSample.TrayIcon
         protected override async void OnExit(ExitEventArgs e)
         {
             await client.DisposeAsync();
-            notifyIcon.Dispose();
+            notifyIcon?.Dispose();
 
             base.OnExit(e);
         }

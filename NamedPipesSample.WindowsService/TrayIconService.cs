@@ -18,7 +18,9 @@ namespace NamedPipesSample.WindowsService
         {
             try
             {
-                var tccFolderPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "TCC");
+                var tccFolderPath = Path.Combine(
+                    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
+                    "TCC");
                 trayManager = new TrayManager(folderPath: tccFolderPath);
 
             }
@@ -30,21 +32,21 @@ namespace NamedPipesSample.WindowsService
 
         public void ShowTrayIcon()
         {
-            var usersSids = trayManager.GetCurrentlyLoggedOnUsersSids().ToList();
+            var usersSids = trayManager?.GetCurrentlyLoggedOnUsersSids().ToList() ?? new List<string>();
 
             foreach (var userSid in usersSids)
             {
-                trayManager.SetConfig(userSid, new Dictionary<string, TrayIconState>() { { TRAY_ICON_PROCESS_NAME, TrayIconState.Visible } });
+                trayManager?.SetConfig(userSid, new Dictionary<string, TrayIconState>() { { TRAY_ICON_PROCESS_NAME, TrayIconState.Visible } });
             }
         }
 
         public void HideTrayIcon()
         {
-            var usersSids = trayManager.GetCurrentlyLoggedOnUsersSids().ToList();
+            var usersSids = trayManager?.GetCurrentlyLoggedOnUsersSids().ToList() ?? new List<string>();
 
             foreach (var userSid in usersSids)
             {
-                trayManager.SetConfig(userSid, new Dictionary<string, TrayIconState>() { { TRAY_ICON_PROCESS_NAME, TrayIconState.Hidden } });
+                trayManager?.SetConfig(userSid, new Dictionary<string, TrayIconState>() { { TRAY_ICON_PROCESS_NAME, TrayIconState.Hidden } });
             }
         }
 

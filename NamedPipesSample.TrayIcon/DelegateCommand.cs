@@ -5,15 +5,15 @@ namespace NamedPipesSample.TrayIcon
 {
     public class DelegateCommand : ICommand
     {
-        public Action CommandAction { get; set; }
-        public Func<bool> CanExecuteFunc { get; set; }
+        public Action? CommandAction { get; set; }
+        public Func<bool>? CanExecuteFunc { get; set; }
 
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
-            CommandAction();
+            CommandAction?.Invoke();
         }
 
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
             return CanExecuteFunc == null || CanExecuteFunc();
         }
